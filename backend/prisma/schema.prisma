@@ -21,7 +21,7 @@ enum cadence_preference {
 }
 
 model User {
-  id          Int                @id @default(autoincrement())
+  id          String             @id @default(uuid())
   name        String
   profession  String?
   dob         DateTime?
@@ -30,8 +30,8 @@ model User {
   password    String
   journal_pin String?
   created_at  DateTime           @default(now())
-  updated_at  DateTime
-  deleted_at  DateTime
+  updated_at  DateTime           @default(now())
+  deleted_at  DateTime?
   sessions    Session[]
   consents    Consent[]
   entries     Entry[]
@@ -40,13 +40,13 @@ model User {
 }
 
 model Session {
-  id            Int      @id @default(autoincrement())
+  id            String    @id @default(uuid())
   refresh_token String
-  created_at    DateTime @default(now())
+  created_at    DateTime  @default(now())
   expired_at    DateTime
-  revoked_at    DateTime
-  user          User     @relation(fields: [userId], references: [id])
-  userId        Int
+  revoked_at    DateTime?
+  user          User      @relation(fields: [userId], references: [id])
+  userId        String
 }
 
 enum Consent_Type {
@@ -56,23 +56,23 @@ enum Consent_Type {
 }
 
 model Consent {
-  id         Int          @id @default(autoincrement())
+  id         String       @id @default(uuid())
   type       Consent_Type
   granted_at DateTime     @default(now())
   revoked_at DateTime
   user       User         @relation(fields: [userId], references: [id])
-  userId     Int
+  userId     String
 }
 
 model Entry {
-  id         Int                         @id @default(autoincrement())
+  id         String                      @id @default(uuid())
   content    String
   embedding  Unsupported("vector[1536]")
   created_at DateTime                    @default(now())
   deleted_at DateTime
   themes     Theme[]
   user       User                        @relation(fields: [userId], references: [id])
-  userId     Int
+  userId     String
 }
 
 enum Theme_status {
@@ -82,7 +82,7 @@ enum Theme_status {
 }
 
 model Theme {
-  id              Int          @id @default(autoincrement())
+  id              String       @id @default(uuid())
   label           String
   emotion_tags    String[]
   occurence_count Int
@@ -92,16 +92,16 @@ model Theme {
   entries         Entry[]
   insights        Insight[]
   user            User         @relation(fields: [userId], references: [id])
-  userId          Int
+  userId          String
 }
 
 model Insight {
-  id         Int      @id @default(autoincrement())
+  id         String   @id @default(uuid())
   content    String
   created_at DateTime @default(now())
   viewed_at  DateTime
   theme      Theme    @relation(fields: [themeId], references: [id])
-  themeId    Int
+  themeId    String
   user       User     @relation(fields: [userId], references: [id])
-  userId     Int
+  userId     String
 }
