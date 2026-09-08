@@ -1,4 +1,4 @@
-# MORA
+# MORA - Meaning Oriented Reflection and Awareness
 
 **Status (current)**
 
