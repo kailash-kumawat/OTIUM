@@ -1,4 +1,4 @@
-# MORA - Meaning Oriented Reflection and Awareness
+# OTIUM - Meaning Oriented Reflection and Awareness
 
 **Status (current)**
 
@@ -58,7 +58,7 @@ node index.js
 
 Copyright © 2026 Kailash Kumawat. All rights reserved.
 
-MORA is source-available for viewing and evaluation purposes, including
+OTIUM is source-available for viewing and evaluation purposes, including
 educational and recruitment purposes.
 
 No permission is granted to copy, modify, distribute, publish, sublicense,
