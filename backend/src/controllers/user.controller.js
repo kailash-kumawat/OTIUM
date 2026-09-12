@@ -19,7 +19,7 @@ export const createUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(201, createdUser, "Signed-up successfully"));
 });
 
-export const loginUser = asyncHandler(async (req, res) => {
+export const logInUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
     throw new ApiError(400, "All fields are required");
@@ -31,11 +31,24 @@ export const loginUser = asyncHandler(async (req, res) => {
     refreshToken,
     accessTokenOptions,
     refreshTokenOptions,
-  } = await userService.loginUser({ email, password });
+  } = await userService.logInUser({ email, password });
 
   return res
     .status(200)
     .cookie("accessToken", accessToken, accessTokenOptions)
     .cookie("refreshToken", refreshToken, refreshTokenOptions)
     .json(new ApiResponse(200, loggedInUser, "logged in successfully"));
+});
+
+export const logOutUser = asyncHandler(async (req, res) => {
+  const userId = req.user.id;
+  const refreshToken = req.cookies.refreshToken;
+
+  const options = await userService.logOutUser(userId, refreshToken);
+
+  return res
+    .status(200)
+    .clearCookie("accessToken", options)
+    .clearCookie("refreshToken", options)
+    .json(new ApiResponse(200, {}, "User logged out successfully"));
 });

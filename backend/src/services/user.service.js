@@ -1,6 +1,10 @@
 import prisma from "../db/index.js";
 import bcrypt from "bcrypt";
-import { ApiError, generateAccessAndRefreshTokens } from "../utils/index.js";
+import {
+  ApiError,
+  generateAccessAndRefreshTokens,
+  hashToken,
+} from "../utils/index.js";
 import { config } from "../config/env.config.js";
 
 export const createUser = async ({ name, email, password }) => {
@@ -32,7 +36,7 @@ export const createUser = async ({ name, email, password }) => {
   });
 };
 
-export const loginUser = async ({ email, password }) => {
+export const logInUser = async ({ email, password }) => {
   const existingUser = await prisma.user.findUnique({
     where: { email },
     select: { id: true, name: true, email: true, password: true },
@@ -56,16 +60,13 @@ export const loginUser = async ({ email, password }) => {
   const { accessToken, refreshToken } =
     generateAccessAndRefreshTokens(safeUser);
 
-  const expiresAtDate = new Date(
-    Date.now() + 7 * 24 * 60 * 60 * 1000,
-  );
-  
+  const expiresAtDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  const hashedRefreshToken = hashToken(refreshToken);
 
-  // CHECK: we have session schema for refresh token
   await prisma.session.create({
     data: {
       userId: safeUser.id,
-      refresh_token: refreshToken,
+      refresh_token: hashedRefreshToken,
       expired_at: expiresAtDate,
     },
   });
@@ -77,7 +78,7 @@ export const loginUser = async ({ email, password }) => {
     secure: isProduction,
     sameSite: isProduction ? "none" : "lax",
     path: "/",
-    maxAge: 1000 * 60 * 15, // 15 minutes
+    maxAge: 1000 * 60 * 15,
   };
 
   const refreshTokenOptions = {
@@ -85,7 +86,7 @@ export const loginUser = async ({ email, password }) => {
     secure: isProduction,
     sameSite: isProduction ? "none" : "lax",
     path: "/",
-    maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+    maxAge: 1000 * 60 * 60 * 24 * 7,
   };
 
   return {
@@ -95,4 +96,38 @@ export const loginUser = async ({ email, password }) => {
     accessTokenOptions,
     refreshTokenOptions,
   };
+};
+
+export const logOutUser = async (userId, refreshToken) => {
+  const hashedIncomingToken = hashToken(refreshToken);
+
+  const session = await prisma.session.findFirst({
+    where: {
+      userId,
+      refresh_token: hashedIncomingToken,
+      revoked_at: null,
+    },
+  });
+
+  if (!session) {
+    res.clearCookie("accessToken");
+    res.clearCookie("refreshToken");
+    throw new ApiError(400, "Session not found or already logged out");
+  }
+
+  await prisma.session.update({
+    where: { id: session.id },
+    data: { revoked_at: new Date() },
+  });
+
+  const isProduction = config.nodeEnv === "production";
+
+  const options = {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
+    path: "/",
+  };
+
+  return options;
 };
