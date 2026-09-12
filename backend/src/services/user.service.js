@@ -110,8 +110,6 @@ export const logOutUser = async (userId, refreshToken) => {
   });
 
   if (!session) {
-    res.clearCookie("accessToken");
-    res.clearCookie("refreshToken");
     throw new ApiError(400, "Session not found or already logged out");
   }
 
