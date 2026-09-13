@@ -71,6 +71,7 @@ export const logInUser = async ({ email, password }) => {
     },
   });
 
+  // TODO: Move below options to controller.
   const isProduction = config.nodeEnv === "production";
 
   const accessTokenOptions = {
@@ -128,4 +129,17 @@ export const logOutUser = async (userId, refreshToken) => {
   };
 
   return options;
+};
+
+export const getUser = async (userId) => {
+  return await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+    select: {
+      name: true,
+      email: true,
+      preference: true,
+    },
+  });
 };
