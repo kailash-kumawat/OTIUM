@@ -140,6 +140,59 @@ export const getUser = async (userId) => {
       name: true,
       email: true,
       preference: true,
+      dob: true,
+      profession: true,
     },
+  });
+};
+
+export const updateUser = async ({ name, email, dob, profession }, userId) => {
+  return await prisma.user.update({
+    where: {
+      id: userId,
+    },
+    data: {
+      name,
+      email,
+      dob,
+      profession,
+    },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      dob: true,
+      profession: true,
+    },
+  });
+};
+
+export const updateUserPassword = async (
+  { oldPassword, newPassword },
+  userId,
+) => {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { password: true },
+  });
+
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  const isOldPasswordCorrect = await bcrypt.compare(oldPassword, user.password);
+
+  if (!isOldPasswordCorrect) {
+    throw new ApiError(401, "Old password is incorrect");
+  }
+
+  const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+
+  return await prisma.user.update({
+    where: { id: userId },
+    data: {
+      password: hashedNewPassword,
+    },
+    select: { id: true },
   });
 };

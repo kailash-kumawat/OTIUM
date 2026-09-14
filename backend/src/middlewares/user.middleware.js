@@ -20,13 +20,19 @@ export const verifyJwt = asyncHandler(async (req, res, next) => {
     });
 
     if (!user) {
-      throw new ApiError(401, "Invalid access token");
+      throw new ApiError(
+        401,
+        "Your session has ended. Please log in again to continue.",
+      );
     }
 
     req.user = user;
 
     next();
   } catch (error) {
-    throw new ApiError(401, "Invalid access token");
+    throw new ApiError(
+      401,
+      "Your session has ended. Please log in again to continue.",
+    );
   }
 });

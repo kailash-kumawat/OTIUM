@@ -64,3 +64,36 @@ export const getUser = asyncHandler(async (req, res) => {
       new ApiResponse(200, userDetails, "User profile fetched successfully"),
     );
 });
+
+export const updateUser = asyncHandler(async (req, res) => {
+  const userId = req.user.id;
+  const { name, email, dob, profession } = req.body;
+
+  if (!name && !email && !dob && !profession) {
+    throw new ApiError(400, "At least one field is required to update");
+  }
+
+  const updatedUser = await userService.updateUser(
+    { name, email, dob, profession },
+    userId,
+  );
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, updatedUser, "Profile updated successfully"));
+});
+
+export const updateUserPassword = asyncHandler(async (req, res) => {
+  const userId = req.user.id;
+  const { oldPassword, newPassword } = req.body;
+
+  if (!oldPassword || !newPassword) {
+    throw new ApiError(400, "Both old and new passwords are required");
+  }
+
+  await userService.updateUserPassword({ oldPassword, newPassword }, userId);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "password updated successfully"));
+});
