@@ -1,9 +1,11 @@
 import prisma from "../db/index.js";
 import bcrypt from "bcrypt";
+import crypto from "crypto";
 import {
   ApiError,
   generateAccessAndRefreshTokens,
   hashToken,
+  sendPasswordResetEmail,
 } from "../utils/index.js";
 import { config } from "../config/env.config.js";
 
@@ -195,4 +197,68 @@ export const updateUserPassword = async (
     },
     select: { id: true },
   });
+};
+
+export const resetPasswordLink = async (email) => {
+  const user = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if (!user) {
+    return "if that email exists, we've sent a reset link";
+  }
+
+  const rawToken = crypto.randomBytes(32).toString("hex");
+  const tokenHash = hashToken(rawToken);
+
+  await prisma.passwordReset.create({
+    data: {
+      userId: user.id,
+      token_hash: tokenHash,
+      expires_at: new Date(Date.now() + 30 * 60 * 1000),
+    },
+  });
+
+  const resetLink = `${config.frontendUrl}/reset-password?token=${rawToken}&email=${user.email}`;
+  await sendPasswordResetEmail(user.email, resetLink);
+};
+
+export const resetPassword = async (token, email, newPassword) => {
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user) {
+    throw new ApiError(400, "Invalid or expired reset link");
+  }
+
+  const tokenHash = hashToken(token);
+
+  const resetRecord = await prisma.passwordReset.findFirst({
+    where: {
+      userId: user.id,
+      token_hash: tokenHash,
+      used_at: null,
+      expires_at: { gt: new Date() },
+    },
+  });
+
+  if (!resetRecord) {
+    throw new ApiError(400, "Invalid or expired reset link");
+  }
+
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+  await prisma.$transaction([
+    prisma.user.update({
+      where: { id: user.id },
+      data: { password: hashedPassword },
+    }),
+    prisma.passwordReset.update({
+      where: { id: resetRecord.id },
+      data: { used_at: new Date() },
+    }),
+
+    prisma.session.updateMany({
+      where: { userId: user.id, revoked_at: null },
+      data: { revoked_at: new Date() },
+    }),
+  ]);
 };

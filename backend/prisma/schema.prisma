@@ -21,22 +21,23 @@ enum cadence_preference {
 }
 
 model User {
-  id          String             @id @default(uuid())
-  name        String
-  profession  String?
-  dob         DateTime?
-  preference  cadence_preference @default(daily)
-  email       String             @unique
-  password    String
-  journal_pin String?
-  created_at  DateTime           @default(now())
-  updated_at  DateTime           @default(now())
-  deleted_at  DateTime?
-  sessions    Session[]
-  consents    Consent[]
-  entries     Entry[]
-  themes      Theme[]
-  insights    Insight[]
+  id             String             @id @default(uuid())
+  name           String
+  profession     String?
+  dob            DateTime?
+  preference     cadence_preference @default(daily)
+  email          String             @unique
+  password       String
+  journal_pin    String?
+  created_at     DateTime           @default(now())
+  updated_at     DateTime           @default(now())
+  deleted_at     DateTime?
+  sessions       Session[]
+  consents       Consent[]
+  entries        Entry[]
+  themes         Theme[]
+  insights       Insight[]
+  passwordResets PasswordReset[]
 }
 
 model Session {
@@ -47,6 +48,16 @@ model Session {
   revoked_at    DateTime?
   user          User      @relation(fields: [userId], references: [id])
   userId        String
+}
+
+model PasswordReset {
+  id         String    @id @default(uuid())
+  userId     String
+  token_hash String
+  expires_at DateTime
+  used_at    DateTime?
+  created_at DateTime  @default(now())
+  user       User      @relation(fields: [userId], references: [id])
 }
 
 enum Consent_Type {

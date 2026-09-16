@@ -10,6 +10,10 @@ const requiredEnv = [
   "REFRESH_TOKEN_SECRET",
   "REFRESH_TOKEN_EXPIRY",
   "NODE_ENV",
+  "EMAILJS_SERVICE_ID",
+  "EMAILJS_TEMPLATE_ID",
+  "EMAILJS_PUBLIC_KEY",
+  "EMAILJS_PRIVATE_KEY",
 ];
 
 for (const env of requiredEnv) {
@@ -30,5 +34,10 @@ export const config = {
   refreshTokenExpiry: process.env.REFRESH_TOKEN_EXPIRY || "7d",
 
   nodeEnv: process.env.NODE_ENV,
+
+  emailjsServiceId: process.env.EMAILJS_SERVICE_ID,
+  emailjsTemplateId: process.env.EMAILJS_TEMPLATE_ID,
+  emailjsPublicKey: process.env.EMAILJS_PUBLIC_KEY,
+  emailjsPrivateKey: process.env.EMAILJS_PRIVATE_KEY,
 };
 // process.env.

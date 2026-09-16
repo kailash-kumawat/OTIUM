@@ -97,3 +97,26 @@ export const updateUserPassword = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, {}, "password updated successfully"));
 });
+
+export const resetPasswordLink = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    throw new ApiError(400, "Email is required");
+  }
+
+  await userService.resetPasswordLink(email);
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, {}, "if that email exists, we've sent a reset link"),
+    );
+});
+
+export const resetPassword = asyncHandler(async (req, res) => {
+  const { token, email, newPassword } = req.body;
+  await userService.resetPassword(token, email, newPassword);
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "Password reset successfully"));
+});
