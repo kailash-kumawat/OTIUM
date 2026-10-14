@@ -69,6 +69,7 @@ enum Consent_Type {
 model Consent {
   id         String       @id @default(uuid())
   type       Consent_Type
+  version    String
   granted_at DateTime     @default(now())
   revoked_at DateTime
   user       User         @relation(fields: [userId], references: [id])

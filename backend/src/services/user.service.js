@@ -1,4 +1,4 @@
-import prisma from "../db/index.js";
+import { prisma, Prisma } from "../db/index.js";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import {
@@ -23,19 +23,44 @@ export const createUser = async ({ name, email, password }) => {
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  return await prisma.user.create({
-    data: {
-      name,
-      email,
-      password: hashedPassword,
-    },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      created_at: true,
-    },
-  });
+  try {
+    return await prisma.$transaction(async (tx) => {
+      const user = await tx.user.create({
+        data: {
+          name,
+          email,
+          password: hashedPassword,
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          created_at: true,
+        },
+      });
+
+      await tx.consent.createMany({
+        data: [
+          { userId: user.id, type: "terms", version: config.termsVersion },
+          {
+            userId: user.id,
+            type: "data_processing",
+            version: config.privacyVersion,
+          },
+        ],
+      });
+
+      return user;
+    });
+  } catch (error) {
+    if (
+      err instanceof Prisma.PrismaClientKnownRequestError &&
+      err.code === "P2002"
+    ) {
+      throw new ApiError(409, "User already exists");
+    }
+    throw err;
+  }
 };
 
 export const logInUser = async ({ email, password }) => {

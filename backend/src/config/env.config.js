@@ -14,6 +14,8 @@ const requiredEnv = [
   "EMAILJS_TEMPLATE_ID",
   "EMAILJS_PUBLIC_KEY",
   "EMAILJS_PRIVATE_KEY",
+  "TERMS_VERSION",
+  "PRIVACY_VERSION",
 ];
 
 for (const env of requiredEnv) {
@@ -39,5 +41,8 @@ export const config = {
   emailjsTemplateId: process.env.EMAILJS_TEMPLATE_ID,
   emailjsPublicKey: process.env.EMAILJS_PUBLIC_KEY,
   emailjsPrivateKey: process.env.EMAILJS_PRIVATE_KEY,
+
+  termsVersion: process.env.TERMS_VERSION,
+  privacyVersion: process.env.PRIVACY_VERSION,
 };
 // process.env.
